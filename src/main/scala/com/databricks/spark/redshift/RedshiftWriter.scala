@@ -103,6 +103,23 @@ private[redshift] class RedshiftWriter(
   }
 
   /**
+    * Generate insert SQL statements for the transfer table
+    */
+  private def insertSql(
+      sqlContext: SQLContext,
+      params: MergedParameters,
+      creds: AWSCredentialsProvider,
+      manifestUrl: String): String = {
+    val credsString: String =
+      AWSCredentialsUtils.getRedshiftCredentialsString(params, creds.getCredentials)
+    val fixedUrl = Utils.fixS3Url(manifestUrl)
+    val copyStatement = copySql(sqlContext, params, creds, manifestUrl).replaceAll("'", "''")
+    val destinationTable = params.table.get
+    s"INSERT INTO transfers (copy_statement, status) " +
+      s"VALUES ('$copyStatement', 'not started')"
+  }
+
+  /**
     * Generate COMMENT SQL statements for the table and columns.
     */
   private[redshift] def commentActions(tableComment: Option[String], schema: StructType):
@@ -140,13 +157,13 @@ private[redshift] class RedshiftWriter(
 
     manifestUrl.foreach { manifestUrl =>
       // Load the temporary data into the new file
-      val copyStatement = copySql(data.sqlContext, params, creds, manifestUrl)
-      log.info(copyStatement)
+      val insertStatement = insertSql(data.sqlContext, params, creds, manifestUrl)
+      log.info(insertStatement)
       try {
-        jdbcWrapper.executeInterruptibly(conn.prepareStatement(copyStatement))
+        jdbcWrapper.executeInterruptibly(conn.prepareStatement(insertStatement))
       } catch {
         case e: SQLException =>
-          log.error("SQLException thrown while running COPY query; will attempt to retrieve " +
+          log.error("SQLException thrown while running INSERT query; will attempt to retrieve " +
             "more information by querying the STL_LOAD_ERRORS table", e)
           // Try to query Redshift's STL_LOAD_ERRORS table to figure out why the load failed.
           // See http://docs.aws.amazon.com/redshift/latest/dg/r_STL_LOAD_ERRORS.html for details.
