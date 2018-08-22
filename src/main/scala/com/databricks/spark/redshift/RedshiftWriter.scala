@@ -114,7 +114,7 @@ private[redshift] class RedshiftWriter(
       AWSCredentialsUtils.getRedshiftCredentialsString(params, creds.getCredentials)
     val fixedUrl = Utils.fixS3Url(manifestUrl)
     val copyStatement = copySql(sqlContext, params, creds, manifestUrl).replaceAll("'", "''")
-    val destinationTable = params.table.get
+    val destinationTable = params.dbtable.get
     val filterColumn = params.filterColumn
     val filterColumnValue = params.filterColumnValue
     s"INSERT INTO transfers (copy_statement, status, table_name, filter_column, max_value) " +

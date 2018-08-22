@@ -38,8 +38,8 @@ private[redshift] object Parameters {
     "diststyle" -> "EVEN",
     "usestagingtable" -> "true",
     "preactions" -> ";",
-    "postactions" -> ";"
-    "filtercolumn" -> ""
+    "postactions" -> ";",
+    "filtercolumn" -> "",
     "filtercolumnvalue" -> ""
   )
 
@@ -140,6 +140,11 @@ private[redshift] object Parameters {
         Some(TableName.parseFromEscaped(dbtable))
       }
     }
+
+    /**
+     * The unformatted Redshift target table name
+     */
+    def dbtable = parameters.get("dbtable")
 
     /**
      * The filter column we're using in this transfer.
