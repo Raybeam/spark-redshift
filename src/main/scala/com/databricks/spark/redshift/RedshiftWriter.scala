@@ -115,8 +115,10 @@ private[redshift] class RedshiftWriter(
     val fixedUrl = Utils.fixS3Url(manifestUrl)
     val copyStatement = copySql(sqlContext, params, creds, manifestUrl).replaceAll("'", "''")
     val destinationTable = params.table.get
-    s"INSERT INTO transfers (copy_statement, status) " +
-      s"VALUES ('$copyStatement', 'not started')"
+    val filterColumn = params.filterColumn
+    val filterColumnValue = params.filterColumnValue
+    s"INSERT INTO transfers (copy_statement, status, table_name, filter_column, max_value) " +
+      s"VALUES ('$copyStatement', 'not started', '$destinationTable', '$filterColumn', '$filterColumnValue')"
   }
 
   /**
