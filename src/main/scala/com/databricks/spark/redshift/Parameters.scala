@@ -38,7 +38,9 @@ private[redshift] object Parameters {
     "diststyle" -> "EVEN",
     "usestagingtable" -> "true",
     "preactions" -> ";",
-    "postactions" -> ";"
+    "postactions" -> ";",
+    "filtercolumn" -> "",
+    "filtercolumnvalue" -> ""
   )
 
   val VALID_TEMP_FORMATS = Set("AVRO", "CSV", "CSV GZIP")
@@ -138,6 +140,21 @@ private[redshift] object Parameters {
         Some(TableName.parseFromEscaped(dbtable))
       }
     }
+
+    /**
+     * The unformatted Redshift target table name
+     */
+    def dbtable = parameters.get("dbtable")
+
+    /**
+     * The filter column we're using in this transfer.
+     */
+    def filterColumn = parameters("filtercolumn")
+
+    /**
+     * The max value of the filter column for this transfer.
+     */
+    def filterColumnValue = parameters("filtercolumnvalue")
 
     /**
      * The Redshift query to be used as the target when loading data.
